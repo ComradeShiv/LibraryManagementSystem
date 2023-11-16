@@ -2,6 +2,8 @@ package com.example.LibraryManagementSystem.service;
 
 import com.example.LibraryManagementSystem.Enum.CardStatus;
 import com.example.LibraryManagementSystem.Enum.Gender;
+import com.example.LibraryManagementSystem.dto.requestDTO.StudentRequest;
+import com.example.LibraryManagementSystem.dto.responseDTO.StudentResponse;
 import com.example.LibraryManagementSystem.model.LibraryCard;
 import com.example.LibraryManagementSystem.model.Student;
 import com.example.LibraryManagementSystem.repository.StudentRepository;
@@ -18,16 +20,32 @@ public class StudentService {
 
     @Autowired
     StudentRepository studentRepository;
-    public String addStudent(Student student) {
+    public StudentResponse addStudent(StudentRequest studentRequest) {
+
+        //converting request DTOs to model class
+        Student student = new Student();
+        student.setName(studentRequest.getName());
+        student.setAge(studentRequest.getAge());
+        student.setGender(studentRequest.getGender());
+        student.setEmail(studentRequest.getEmail());
+
+        // give a library card
         LibraryCard libraryCard = new LibraryCard();
         libraryCard.setCardNo(String.valueOf(UUID.randomUUID()));
         libraryCard.setCardStatus(CardStatus.ACTIVE);
         libraryCard.setStudent(student);
 
-        student.setLibraryCard(libraryCard);
+        student.setLibraryCard(libraryCard); // set library card to student
 
-        Student student1 = studentRepository.save(student);  // save both student & library class in DB
-        return "Student saved successfully";
+        Student savedStudent = studentRepository.save(student);  // save both student & library class in DB
+
+        // save model to response DTOs
+        StudentResponse studentResponse = new StudentResponse();
+        studentResponse.setName(savedStudent.getName());
+        studentResponse.setEmail(savedStudent.getEmail());
+        studentResponse.setCardIsIssuedNo(savedStudent.getLibraryCard().getCardNo());
+        studentResponse.setMessage("You have been registered");
+        return studentResponse;
     }
 
     public Student getStudent(int regNo) {
