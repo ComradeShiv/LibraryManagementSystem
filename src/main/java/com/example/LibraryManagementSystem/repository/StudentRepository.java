@@ -15,4 +15,6 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     String findByEmail(String email);
 
     String findByGenderAndEmail(Gender gender, String email);
+
+    Student deleteById(int regNo);
 }
