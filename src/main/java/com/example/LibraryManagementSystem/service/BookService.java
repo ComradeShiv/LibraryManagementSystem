@@ -29,17 +29,14 @@ public class BookService {
 
         // check whether author is present or not
         Optional<Author> authorOptional = Optional.ofNullable(authorRepository.findByName(bookRequest.getAuthorName()));
-        if(authorOptional.isEmpty()) {
+        if(authorOptional.isPresent()) {
             throw new AuthorNotFoundException("Invalid Author Name");
         }
-        Book book = new Book();
 
-        book.setTitle(bookRequest.getTitle());
-        book.setNoOfPages(bookRequest.getNoOfPages());
-        book.setGenre(bookRequest.getGenre());
-        book.setCost(bookRequest.getCost());
-        book.setIssued(false);
+        // convert book request to book
+        Book book = BookTransformer.bookRequestToBook(bookRequest);
 
+        // adding author details
         Author author = authorOptional.get();
         book.setAuthor(author);
         author.getBooks().add(book);
@@ -77,14 +74,7 @@ public class BookService {
 
         List<BookResponse> bookResponses = new ArrayList<>();
         for(Book book: books) {
-            BookResponse bookResponse = new BookResponse();
-
-            bookResponse.setTitle(book.getTitle());
-            bookResponse.setAuthorName(book.getAuthor().getName());
-            bookResponse.setNoOfPages(book.getNoOfPages());
-            bookResponse.setGenre(book.getGenre());
-            bookResponse.setCost(book.getCost());
-
+            BookResponse bookResponse = BookTransformer.bookToBookResponse(book);
             bookResponses.add(bookResponse);
         }
 
@@ -97,14 +87,6 @@ public class BookService {
             return null;
 
         BookResponse bookResponse = BookTransformer.bookToBookResponse(optionalBook.get());
-
-//        BookResponse bookResponse = new BookResponse();
-//
-//        bookResponse.setTitle(optionalBook.get().getTitle());
-//        bookResponse.setAuthorName(optionalBook.get().getAuthor().getName());
-//        bookResponse.setGenre(optionalBook.get().getGenre());
-//        bookResponse.setNoOfPages(optionalBook.get().getNoOfPages());
-//        bookResponse.setCost(optionalBook.get().getCost());
 
         Book deletedBook = bookRepository.deleteById(id);
 
@@ -124,16 +106,6 @@ public class BookService {
         }
 
         return bookRepository.booksWithGenre(genre);
-
-//        List<Book> bookList = bookRepository.findByGenre(Genre.valueOf(genre));
-//
-//        List<String> bookWithReqGenre = new ArrayList<>();
-//        for(Book book: bookList) {
-//            if(book.getGenre().equals(Genre.valueOf(genre))) {
-//                bookWithReqGenre.add(book.getTitle());
-//            }
-//        }
-//        return bookWithReqGenre;
     }
 
     public List<BookResponse> booksHavingNoOfPagesBetween(int a, int b) {

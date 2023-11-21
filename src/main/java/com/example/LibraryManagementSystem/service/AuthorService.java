@@ -27,6 +27,7 @@ public class AuthorService {
         if(authorByEmail.isPresent()) {
             throw new EmailAlreadyExistException("Email already registered");
         }
+
         Optional<Author> optionalAuthor = authorRepository.findById(id);
         if(!optionalAuthor.isPresent()) {
             throw new AuthorNotFoundException("Invalid author ID !!");
@@ -39,16 +40,11 @@ public class AuthorService {
 
     public String addAuthor(AuthorRequest authorRequest) {
 
-        Author author = new Author();
-
-        author.setName(authorRequest.getName());
-        author.setAge(authorRequest.getAge());
-        author.setEmailId(authorRequest.getEmail());
+        Author author = AuthorTransformer.authorRequestToAuthor(authorRequest);
 
         Author author1 = authorRepository.save(author);
         return "Author successfully added !!!";
     }
-
 
     public List<BookResponse> getAllBooksByAnAuthor(int id) {
         Optional<Author> optionalAuthor = authorRepository.findById(id);

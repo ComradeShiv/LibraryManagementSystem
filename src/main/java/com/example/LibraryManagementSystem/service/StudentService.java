@@ -8,6 +8,7 @@ import com.example.LibraryManagementSystem.exception.StudentNotFoundException;
 import com.example.LibraryManagementSystem.model.LibraryCard;
 import com.example.LibraryManagementSystem.model.Student;
 import com.example.LibraryManagementSystem.repository.StudentRepository;
+import com.example.LibraryManagementSystem.transformer.StudentTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,29 +24,11 @@ public class StudentService {
     StudentRepository studentRepository;
     public StudentResponse addStudent(StudentRequest studentRequest) {
 
-        //converting request DTOs to model class
-        Student student = new Student();
-        student.setName(studentRequest.getName());
-        student.setAge(studentRequest.getAge());
-        student.setGender(studentRequest.getGender());
-        student.setEmail(studentRequest.getEmail());
-
-        // give a library card
-        LibraryCard libraryCard = new LibraryCard();
-        libraryCard.setCardNo(String.valueOf(UUID.randomUUID()));
-        libraryCard.setCardStatus(CardStatus.ACTIVE);
-        libraryCard.setStudent(student);
-
-        student.setLibraryCard(libraryCard); // set library card to student
-
+        Student student = StudentTransformer.studentRequestToStudent(studentRequest); // create student & set libraryCard as well
         Student savedStudent = studentRepository.save(student);  // save both student & library class in DB
 
         // save model to response DTOs
-        StudentResponse studentResponse = new StudentResponse();
-        studentResponse.setName(savedStudent.getName());
-        studentResponse.setEmail(savedStudent.getEmail());
-        studentResponse.setCardIsIssuedNo(savedStudent.getLibraryCard().getCardNo());
-        studentResponse.setMessage("You have been registered");
+        StudentResponse studentResponse = StudentTransformer.studentToStudentResponse(savedStudent);
         return studentResponse;
     }
 
@@ -55,16 +38,6 @@ public class StudentService {
             return studentOptional.get();
         return null;
     }
-
-//    public List<String> findAllMales() {
-//        List<String> list = new ArrayList<>();
-//
-//        for(Student s: studentRepository.findAll())
-//            if(s.getGender().equals(Gender.MALE))
-//                list.add(s.getName());
-//
-//        return list;
-//    }
 
     public List<String> findAllMales() {
         List<String> names = new ArrayList<>();
@@ -81,15 +54,11 @@ public class StudentService {
             return null;
         }
 
+        // delete student details
+        Student deletedStudent = studentRepository.deleteById(regNo);
+
         // add details to student DTO
-        StudentResponse studentResponse = new StudentResponse();
-        studentResponse.setMessage("Your details no longer exist");
-        studentResponse.setName(optionalStudent.get().getName());
-        studentResponse.setEmail(optionalStudent.get().getEmail());
-        studentResponse.setCardIsIssuedNo(optionalStudent.get().getLibraryCard().getCardNo());
-
-        Student deletedStudent = studentRepository.deleteById(regNo); //deleted the student details
-
+        StudentResponse studentResponse = StudentTransformer.studentToStudentResponse(deletedStudent);
         return studentResponse;
     }
 
@@ -109,13 +78,7 @@ public class StudentService {
 
         List<StudentResponse> studentResponses = new ArrayList<>();
         for(Student student: students) {
-            StudentResponse studentResponse = new StudentResponse();
-
-            studentResponse.setName(student.getName());
-            studentResponse.setMessage("Present");
-            studentResponse.setEmail(student.getEmail());
-            studentResponse.setCardIsIssuedNo(student.getLibraryCard().getCardNo());
-
+            StudentResponse studentResponse = StudentTransformer.studentToStudentResponse(student);
             studentResponses.add(studentResponse);
         }
 

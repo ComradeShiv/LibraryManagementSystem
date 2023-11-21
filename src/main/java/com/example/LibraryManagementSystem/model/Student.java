@@ -13,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Entity
 @Table(name = "Student_info")
+@Builder
 public class Student {
 
     @Id
@@ -26,8 +27,6 @@ public class Student {
 
     @Column(unique = true, nullable = false)
     String email;
-
-    int marks;
 
     @Enumerated(EnumType.STRING)
     Gender gender;
