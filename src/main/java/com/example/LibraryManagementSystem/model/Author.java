@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class Author {
 
     @Id

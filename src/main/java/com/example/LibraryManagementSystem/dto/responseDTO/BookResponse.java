@@ -10,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class BookResponse {
 
     String title;

@@ -1,38 +1,31 @@
-package com.example.LibraryManagementSystem.model;
+package com.example.LibraryManagementSystem.dto.responseDTO;
 
 import com.example.LibraryManagementSystem.Enum.TransactionStatus;
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
-@Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class Transaction {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id;
+public class ReturnBookResponse {
 
     String transactionNumber; // UUID
 
-    @CreationTimestamp
     Date transactionTime;
 
     TransactionStatus transactionStatus;
 
-    @ManyToOne
-    @JoinColumn
-    Book book;
+    String bookTitle;
 
-    @ManyToOne
-    @JoinColumn
-    LibraryCard libraryCard;
+    String authorName;
+
+    String studentName;
+
+    String libraryCardNumber;
 }

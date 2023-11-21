@@ -17,4 +17,10 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
      List<Book> getAllBooksWithGenreAndCostGreaterThan(String genre, double cost);
 
      Book deleteById(int id);
+
+     @Query(value = "select title from book where genre = :genre", nativeQuery = true)
+    List<String> booksWithGenre(String genre);
+
+     @Query(value = "select * from book where no_of_pages > :a and no_of_pages < :b", nativeQuery = true)
+     List<Book> booksHavingNoOfPagesBetween(int a, int b);
 }

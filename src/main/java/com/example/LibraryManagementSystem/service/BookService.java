@@ -4,10 +4,12 @@ import com.example.LibraryManagementSystem.Enum.Genre;
 import com.example.LibraryManagementSystem.dto.requestDTO.BookRequest;
 import com.example.LibraryManagementSystem.dto.responseDTO.BookResponse;
 import com.example.LibraryManagementSystem.exception.AuthorNotFoundException;
+import com.example.LibraryManagementSystem.exception.GenreNotFoundException;
 import com.example.LibraryManagementSystem.model.Author;
 import com.example.LibraryManagementSystem.model.Book;
 import com.example.LibraryManagementSystem.repository.AuthorRepository;
 import com.example.LibraryManagementSystem.repository.BookRepository;
+import com.example.LibraryManagementSystem.transformer.BookTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -94,16 +96,54 @@ public class BookService {
         if(!optionalBook.isPresent())
             return null;
 
-        BookResponse bookResponse = new BookResponse();
+        BookResponse bookResponse = BookTransformer.bookToBookResponse(optionalBook.get());
 
-        bookResponse.setTitle(optionalBook.get().getTitle());
-        bookResponse.setAuthorName(optionalBook.get().getAuthor().getName());
-        bookResponse.setGenre(optionalBook.get().getGenre());
-        bookResponse.setNoOfPages(optionalBook.get().getNoOfPages());
-        bookResponse.setCost(optionalBook.get().getCost());
+//        BookResponse bookResponse = new BookResponse();
+//
+//        bookResponse.setTitle(optionalBook.get().getTitle());
+//        bookResponse.setAuthorName(optionalBook.get().getAuthor().getName());
+//        bookResponse.setGenre(optionalBook.get().getGenre());
+//        bookResponse.setNoOfPages(optionalBook.get().getNoOfPages());
+//        bookResponse.setCost(optionalBook.get().getCost());
 
         Book deletedBook = bookRepository.deleteById(id);
 
         return bookResponse;
+    }
+
+    public List<String> booksWithGenre(String genre) {
+        boolean isGenrePresent = false;
+        for(Genre g: Genre.values()) {
+            if(g.toString().equals(genre)) {
+                isGenrePresent = true;
+                break;
+            }
+        }
+        if(!isGenrePresent) {
+            throw new GenreNotFoundException("No such genre found !!!");
+        }
+
+        return bookRepository.booksWithGenre(genre);
+
+//        List<Book> bookList = bookRepository.findByGenre(Genre.valueOf(genre));
+//
+//        List<String> bookWithReqGenre = new ArrayList<>();
+//        for(Book book: bookList) {
+//            if(book.getGenre().equals(Genre.valueOf(genre))) {
+//                bookWithReqGenre.add(book.getTitle());
+//            }
+//        }
+//        return bookWithReqGenre;
+    }
+
+    public List<BookResponse> booksHavingNoOfPagesBetween(int a, int b) {
+        List<Book> books = bookRepository.booksHavingNoOfPagesBetween(a, b);
+
+        List<BookResponse> bookResponses = new ArrayList<>();
+        for (Book book: books) {
+            bookResponses.add(BookTransformer.bookToBookResponse(book));
+        }
+
+        return bookResponses;
     }
 }

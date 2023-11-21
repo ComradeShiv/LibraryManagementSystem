@@ -2,7 +2,7 @@ package com.example.LibraryManagementSystem.Enum;
 
 public enum Genre {
 
-    COMEDDY,
+    COMEDY,
     SCIFI,
     THRILLER,
     HORROR,

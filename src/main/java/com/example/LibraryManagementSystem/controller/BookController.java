@@ -4,6 +4,7 @@ import com.example.LibraryManagementSystem.Enum.Genre;
 import com.example.LibraryManagementSystem.dto.requestDTO.BookRequest;
 import com.example.LibraryManagementSystem.dto.responseDTO.BookResponse;
 import com.example.LibraryManagementSystem.exception.AuthorNotFoundException;
+import com.example.LibraryManagementSystem.exception.GenreNotFoundException;
 import com.example.LibraryManagementSystem.model.Book;
 import com.example.LibraryManagementSystem.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,18 @@ public class BookController {
     }
 
     // give me names of all books of a particular genre
+    @GetMapping("/booksWithGenre/{genre}")
+    public ResponseEntity booksWithGenre(@PathVariable("genre") String genre) {
+        try {
+            List<String> bookList = bookService.booksWithGenre(genre);
+            if(bookList.isEmpty()) {
+                return new ResponseEntity("No books with " + genre + " available !!", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity(bookList, HttpStatus.FOUND);
+        } catch (GenreNotFoundException e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 
     // give me names of all books of a particular genre & cost greater than 500 rs
     @GetMapping("/getAllBooksWithGenreAndCost/{genre}/{cost}")
@@ -59,6 +72,14 @@ public class BookController {
     }
 
     // give me all books having no of pages between 'a' and 'b'
+    @GetMapping("/getAllBooksWithNoOfPagesBetween")
+    public ResponseEntity booksHavingNoOfPagesBetween(@RequestParam("a") int a, @RequestParam("b") int b) {
+        List<BookResponse> bookResponses = bookService.booksHavingNoOfPagesBetween(a, b);
+        if(bookResponses.isEmpty()) {
+            return new ResponseEntity<>("No Such Book available", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity(bookResponses, HttpStatus.FOUND);
+    }
 
     // give me names of all the author who writes a particular genre
 }
