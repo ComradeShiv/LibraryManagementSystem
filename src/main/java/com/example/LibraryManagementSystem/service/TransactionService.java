@@ -14,7 +14,10 @@ import com.example.LibraryManagementSystem.model.Transaction;
 import com.example.LibraryManagementSystem.repository.BookRepository;
 import com.example.LibraryManagementSystem.repository.StudentRepository;
 import com.example.LibraryManagementSystem.repository.TransactionRepository;
+import com.example.LibraryManagementSystem.transformer.BookTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -31,6 +34,9 @@ public class TransactionService {
 
     @Autowired
     BookRepository bookRepository;
+
+    @Autowired
+    JavaMailSender javaMailSender;
 
     public IssuedBookResponse issuedBook(int studentId, int bookId) {
         Optional<Student> optionalStudent = studentRepository.findById(studentId);
@@ -51,11 +57,12 @@ public class TransactionService {
         Student student = optionalStudent.get();
 
         // create new transaction
-        Transaction transaction = new Transaction();
-        transaction.setTransactionNumber(String.valueOf(UUID.randomUUID()));
-        transaction.setTransactionStatus(TransactionStatus.SUCCESS);
-        transaction.setBook(book);
-        transaction.setLibraryCard(student.getLibraryCard());
+        Transaction transaction = Transaction.builder()
+                .transactionNumber(String.valueOf(UUID.randomUUID()))
+                .transactionStatus(TransactionStatus.SUCCESS)
+                .book(book)
+                .libraryCard(student.getLibraryCard())
+                .build();
 
         // save transaction --> so it doesn't get saved twice
         Transaction savedTransaction = transactionRepository.save(transaction);
@@ -71,18 +78,20 @@ public class TransactionService {
         Book savedBook = bookRepository.save(book);
         Student savedStudent = studentRepository.save(student);
 
-        // create issued book response
-        IssuedBookResponse issuedBookResponse = new IssuedBookResponse();
-        issuedBookResponse.setTransactionNumber(savedTransaction.getTransactionNumber());
-        issuedBookResponse.setTransactionTime(savedTransaction.getTransactionTime());
-        issuedBookResponse.setTransactionStatus(savedTransaction.getTransactionStatus());
-        issuedBookResponse.setBookTitle(book.getTitle());
-        issuedBookResponse.setAuthorName(book.getAuthor().getName());
-        issuedBookResponse.setStudentName(student.getName());
-        issuedBookResponse.setEmail(student.getEmail());
-        issuedBookResponse.setLibraryCardNumber(student.getLibraryCard().getCardNo());
-        issuedBookResponse.setTotalCost(book.getCost());
+        //  send an email
+        String text = "Hi! " + student.getName() + " The below book has been issued to you\n" +
+                book.getTitle() + " \nThis is the transaction number: "+savedTransaction.getTransactionNumber();
 
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setFrom("sukanshitalreja2211@gmail.com");
+        simpleMailMessage.setTo(student.getEmail());
+        simpleMailMessage.setSubject("Congrats!! Book Issued");
+        simpleMailMessage.setText(text);
+
+        javaMailSender.send(simpleMailMessage);
+
+        // create issued book response
+        IssuedBookResponse issuedBookResponse = BookTransformer.prepareIssuedBookResponse(savedTransaction, book, student);
         return issuedBookResponse;
     }
 
@@ -105,11 +114,12 @@ public class TransactionService {
         Student student = optionalStudent.get();
 
         // create transaction
-        Transaction transaction = new Transaction();
-        transaction.setTransactionNumber(String.valueOf(UUID.randomUUID()));
-        transaction.setTransactionStatus(TransactionStatus.SUCCESS);
-        transaction.setBook(book);
-        transaction.setLibraryCard(student.getLibraryCard());
+        Transaction transaction = Transaction.builder()
+                .transactionNumber(String.valueOf(UUID.randomUUID()))
+                .transactionStatus(TransactionStatus.SUCCESS)
+                .book(book)
+                .libraryCard(student.getLibraryCard())
+                .build();
 
         // save transaction --> so it doesn't get saved twice
         Transaction savedTransaction = transactionRepository.save(transaction);
@@ -126,15 +136,7 @@ public class TransactionService {
         studentRepository.save(student);
 
         // create return book response
-        ReturnBookResponse returnBookResponse = new ReturnBookResponse();
-        returnBookResponse.setTransactionNumber(savedTransaction.getTransactionNumber());
-        returnBookResponse.setTransactionTime(savedTransaction.getTransactionTime());
-        returnBookResponse.setTransactionStatus(savedTransaction.getTransactionStatus());
-        returnBookResponse.setBookTitle(book.getTitle());
-        returnBookResponse.setAuthorName(book.getAuthor().getName());
-        returnBookResponse.setStudentName(student.getName());
-        returnBookResponse.setLibraryCardNumber(student.getLibraryCard().getCardNo());
-
+        ReturnBookResponse returnBookResponse = BookTransformer.prepareReturnBookResponse(savedTransaction, book, student);
         return returnBookResponse;
     }
 }
